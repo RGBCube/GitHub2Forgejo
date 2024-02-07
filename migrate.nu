@@ -21,8 +21,6 @@ def main [
   let github_user = $github_user | str-or { input $"(ansi red)GitHub username: (ansi reset)" }
   let github_token = $github_token | str-or { input $"(ansi red)GitHub access token (ansi yellow)\((ansi blue)optional, only used for private repositories(ansi yellow))(ansi red): (ansi reset)" }
 
-  echo
-
   let gitea_url = $gitea_url | str-or { input $"(ansi green)Gitea instance URL: (ansi reset)" }
   let gitea_url = if ($gitea_url | str ends-with "/") {
     $gitea_url | str trim --left --char "/"
@@ -32,8 +30,6 @@ def main [
 
   let gitea_user = $gitea_user | str-or { input $"(ansi green)Gitea username or organization to migrate to: (ansi reset)" }
   let gitea_token = $gitea_token | str-or { input $"(ansi green)Gitea access token: (ansi reset)" }
-
-  echo
 
   let gitea_uid = (
     http get $"($gitea_url)/api/v1/users/($gitea_user)"
