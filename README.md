@@ -29,6 +29,14 @@ This works on any Gitea or Forgejo instance.
   This is good for when you are migrating off GitHub permanently
   and will never come back.
 
+### Can I migrate specific repositories?
+
+Sure, just pass the URLs to them as arguments:
+
+```nu
+./migrate.nu https://github.com/RGBCube/Foo https://github.com/RGBCube/Bar
+```
+
 ## License
 
 ```

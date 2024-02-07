@@ -13,9 +13,10 @@ def main [
   --github-user: string = "<NONE>"  # The user to migrate from.
   --github-token: string = "<NONE>" # An access token for fetching private repositories. Optional.
   --gitea-url: string = "<NONE>"    # The URL to the Gitea or Forgejo instance
-  --gitea-user: string = "<NONE>"   # The user to mirror or clone the repositories to.
+  --gitea-user: string = "<NONE>"   # The user to migrate the repositories to.
   --gitea-token: string = "<NONE>"  # An access token for the user to actually insert repositories to.
   --strategy: string = "<NONE>"     # The strategy. Valid options are "Mirrored" or "Cloned" (case sensitive).
+  ...repo_urls: string              # The GitHub repo URLs to migrate to Gitea or Forgejo. If not given, all will be fetched.
 ] {
   let github_user = $github_user | str-or { input $"(ansi red)GitHub username: (ansi reset)" }
   let github_token = $github_token | str-or { input $"(ansi red)GitHub access token (ansi yellow)\((ansi blue)optional, only used for private repositories(ansi yellow))(ansi red): (ansi reset)" }
@@ -46,15 +47,19 @@ def main [
 
   let strategy = $strategy | str-or { [ Mirrored Cloned ] | input list $"(ansi cyan)Should the repos be mirrored, or just cloned once? (ansi reset)" }
 
-  let repo_urls = if $github_token != "" {
-    (
-      http get $"https://api.github.com/users/($github_user)/repos?per_page=100"
-      -H [ Authorization $"token ($github_token)" ]
-    )
-    | get html_url
+  let repo_urls = if ($repo_urls | length) != 0 {
+    $repo_urls
   } else {
-    http get $"https://api.github.com/users/($github_user)/repos?per_page=100"
-    | get html_url
+    if $github_token != "" {
+      (
+        http get $"https://api.github.com/users/($github_user)/repos?per_page=100"
+        -H [ Authorization $"token ($github_token)" ]
+      )
+      | get html_url
+    } else {
+      http get $"https://api.github.com/users/($github_user)/repos?per_page=100"
+      | get html_url
+    }
   }
 
   $repo_urls | each {|url|
