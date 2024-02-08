@@ -61,19 +61,19 @@ def main [
   $repo_urls | each {|url|
     let repo_name = $url | split row "/" | last
 
-    let repo_is_private = if $github_token != "" {
+    let repo_is_private = if $github_token == "" {
+      false
+    } else {
       (
         http get ("https://api.github.com/repos/" + $github_user + "/" + $repo_name)
         -H [ Authorization $"token ($github_token)" ]
       ).private
-    } else {
-      false
     }
 
-    let url = if $repo_is_private {
-      $"https://($github_token)@github.com/($github_user)/($repo_name)"
-    } else {
+    let url = if not $repo_is_private {
       $url
+    } else {
+      $"https://($github_token)@github.com/($github_user)/($repo_name)"
     }
 
     print --no-newline $"(ansi blue)($strategy | str replace "ed" "ing") ([public private] | get ($repo_is_private | into int)) repository to ($gitea_url)/($gitea_user)/($repo_name)..."
