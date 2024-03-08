@@ -21,12 +21,7 @@ def main [
   let github_user = $github_user | str-or { input $"(ansi red)GitHub username: (ansi reset)" }
   let github_token = $github_token | str-or { input $"(ansi red)GitHub access token (ansi yellow)\((ansi blue)optional, only used for private repositories(ansi yellow))(ansi red): (ansi reset)" }
 
-  let gitea_url = $gitea_url | str-or { input $"(ansi green)Gitea instance URL: (ansi reset)" }
-  let gitea_url = if ($gitea_url | str ends-with "/") {
-    $gitea_url | str trim --left --char "/"
-  } else {
-    $gitea_url
-  }
+  let gitea_url = $gitea_url | str-or { input $"(ansi green)Gitea instance URL: (ansi reset)" } | str trim --right --char "/"
 
   let gitea_user = $gitea_user | str-or { input $"(ansi green)Gitea username or organization to migrate to: (ansi reset)" }
   let gitea_token = $gitea_token | str-or { input $"(ansi green)Gitea access token: (ansi reset)" }
@@ -76,10 +71,11 @@ def main [
       $"https://($github_token)@github.com/($github_user)/($repo_name)"
     }
 
-    print --no-newline $"(ansi blue)($strategy | str replace "ed" "ing") ([public private] | get ($repo_is_private | into int)) repository to ($gitea_url)/($gitea_user)/($repo_name)..."
+    print --no-newline $"(ansi blue)($strategy | str replace "ed" "ing") ([public private] | get ($repo_is_private | into int)) repository ($url) to ($gitea_url)/($gitea_user)/($repo_name)..."
 
     let response = (
       http post $"($gitea_url)/api/v1/repos/migrate"
+      --allow-errors
       -t application/json
       -H [
         Authorization $"token ($gitea_token)"
@@ -97,7 +93,7 @@ def main [
 
     echo $" (ansi green)Success!"
 
-    # echo ($response | to json)
+    echo ($response | to json)
 
     # TODO: Handle ratelimits, 409's and access failures. Also print a
     # nice message and options on what to do next on error.
