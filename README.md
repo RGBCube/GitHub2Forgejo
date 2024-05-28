@@ -31,11 +31,7 @@ This works on any Gitea or Forgejo instance.
 
 ### Can I migrate specific repositories?
 
-Sure, just pass the URLs to them as arguments:
-
-```nu
-./migrate.nu https://github.com/RGBCube/Foo https://github.com/RGBCube/Bar
-```
+Nope. Just use the Gitea/Forgejo web UI for that.
 
 ## License
 
