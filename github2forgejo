@@ -74,7 +74,7 @@ def main [] {
       http get $"($forgejo_url)/api/v1/user/repos"
         -H [ Authorization $"token ($forgejo_token)" ]
       | filter { get mirror }
-      | filter { ($github_token != "") and not $in.private }
+      | filter { if $github_token == "" { not $in.private } else { true } }
     )
 
     let forgejo_not_on_github = ($forgejo_mirrored_repos | filter { not ($in.name in $github_repo_names) })
