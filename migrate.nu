@@ -75,7 +75,7 @@ def main [
       $"https://($github_token)@github.com/($github_user)/($repo_name)"
     }
 
-    print --no-newline $"(ansi blue)($strategy | str replace "ed" "ing") ([public private] | get ($repo_is_private | into int)) repository ($url) to ($gitea_url)/($gitea_user)/($repo_name)..."
+    print --no-newline $"(ansi blue)($strategy | str replace "ed" "ing") ([ public private ] | get ($repo_is_private | into int)) repository ($url) to ($gitea_url)/($gitea_user)/($repo_name)..."
 
     let response = (
       http post $"($gitea_url)/api/v1/repos/migrate"
