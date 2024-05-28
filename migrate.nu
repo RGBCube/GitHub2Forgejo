@@ -95,8 +95,11 @@ def main [
       }
     )
 
-    if ($response | get -i message | is-not-empty) {
+    let error_message = ($response | get -i message)
+    if ($error_message != null and $error_message =~ "already exists") {
       print $" (ansi yellow)Already mirrored!"
+    } else if ($error_message != null) {
+      print $" (ansi red)Unknown error: ($error_message)"
     } else {
       print $" (ansi green)Success!"
     }
