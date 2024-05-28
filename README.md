@@ -1,4 +1,4 @@
-# GitHub to Gitea/Forgejo Migration Script
+# GitHub to Forgejo Migration Script
 
 Plain simple, just install [Nushell](https://nushell.sh) and run the script:
 
@@ -15,7 +15,7 @@ for a uninteractive run, or run the script like so:
 
 And get a nice interactive experience.
 
-This works on any Gitea or Forgejo instance.
+This works on any Forgejo instance.
 
 ## FAQ
 
@@ -31,7 +31,7 @@ This works on any Gitea or Forgejo instance.
 
 ### Can I migrate specific repositories?
 
-Nope. Just use the Gitea/Forgejo web UI for that.
+Nope. Just use the Forgejo web UI for that.
 
 ## License
 
