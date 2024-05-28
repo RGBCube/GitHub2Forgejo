@@ -36,7 +36,6 @@ def main [] {
         -H [ Authorization $"token ($github_token)" ])
       } else {
         http get $"https://api.github.com/users/($github_user)/repos?per_page=100?page=($page_nr)"
-        exit
       }
     }
 
@@ -65,6 +64,7 @@ def main [] {
       http get $"($gitea_url)/api/v1/user/repos"
         -H [ Authorization $"token ($gitea_token)" ]
       | filter { get mirror }
+      | filter { ($github_token != "") and not $in.private }
     )
 
     let gitea_not_on_github = ($gitea_mirrored_repos | filter { not ($in.name in $github_repo_names) })
@@ -75,19 +75,23 @@ def main [] {
       (http delete $"($gitea_url)/api/v1/repos/($gitea_repo.full_name)"
         -H [ Authorization $"token ($gitea_token)" ])
 
-      print $" (ansi green)Success!(ansi reset)"
+      print $" (ansi green_bold)Success!(ansi reset)"
     }
   }
 
   # Mirror repos that do exist on GitHub to Gitea.
   $github_repos | each {|github_repo|
+    print --no-newline $"(ansi blue)(
+      $strategy | str capitalize | str replace "ed" "ing"
+    ) (
+      [ $"(ansi green)public(ansi blue)(char space)" $"(ansi red)private(ansi blue)" ] | get ($github_repo.private | into int)
+    ) repository (ansi purple)($github_repo.html_url)(ansi blue) to (ansi white_bold)($gitea_url)/($gitea_user)/($github_repo.name)(ansi blue)...(ansi reset)"
+
     let github_repo_url = if not $github_repo.private {
       $github_repo.html_url
     } else {
-      $"https://($github_token)@github.com/($github_user)/($github_repo.name)"
+      $"https://($github_token)@github.com/($github_repo.full_name)"
     }
-
-    print --no-newline $"(ansi blue)($strategy | str capitalize | str replace "ed" "ing") ([ public private ] | get ($github_repo.private | into int)) repository ($github_repo_url) to ($gitea_url)/($gitea_user)/($github_repo.name)...(ansi reset)"
 
     let response = (
       http post $"($gitea_url)/api/v1/repos/migrate"
@@ -111,7 +115,7 @@ def main [] {
     } else if ($error_message != null) {
       print $" (ansi red)Unknown error: ($error_message)(ansi reset)"
     } else {
-      print $" (ansi green)Success!(ansi reset)"
+      print $" (ansi green_bold)Success!(ansi reset)"
     }
   }
 
