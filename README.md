@@ -6,8 +6,8 @@ Plain simple, just install [Nushell](https://nushell.sh) and run the script:
 ./migrate.nu --help
 ```
 
-You can either specify all the CLI flags for a uninteractive run,
-or run the script like so:
+You can either specify all the environment variables
+for a uninteractive run, or run the script like so:
 
 ```nu
 ./migrate.nu

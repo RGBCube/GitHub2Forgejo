@@ -1,7 +1,7 @@
 #!/usr/bin/env nu
 
-def str-or [default: closure] {
-  if $in == null or $in == "<NONE>" {
+def or-default [default: closure] {
+  if ($in | is-empty) {
     do $default
   } else {
     $in
@@ -9,22 +9,26 @@ def str-or [default: closure] {
 }
 
 # Migrates a GitHub users repositories to a Gitea or Forgejo instance.
+#
+# Here is the accepted environment variables, if one isn't set, it will
+# be prompted for:
+#
+# GITHUB_USER: The user to migrate from.
+# GITHUB_TOKEN: An access token for fetching private repositories. Optional.
+# GITEA_URL: The URL to the Gitea or Forgejo instance
+# GITEA_USER: The user to migrate the repositories to.
+# GITEA_TOKEN: An access token for the user to actually insert repositories to.
+# STRATEGY: The strategy. Valid options are "mirrored" or "cloned" (case insensitive).
 def main [
-  --github-user: string = "<NONE>"  # The user to migrate from.
-  --github-token: string = "<NONE>" # An access token for fetching private repositories. Optional.
-  --gitea-url: string = "<NONE>"    # The URL to the Gitea or Forgejo instance
-  --gitea-user: string = "<NONE>"   # The user to migrate the repositories to.
-  --gitea-token: string = "<NONE>"  # An access token for the user to actually insert repositories to.
-  --strategy: string = "<NONE>"     # The strategy. Valid options are "Mirrored" or "Cloned" (case sensitive).
-  ...repo_urls: string              # The GitHub repo URLs to migrate to Gitea or Forgejo. If not given, all will be fetched.
+  ...repo_urls: string # The GitHub repo URLs to migrate to Gitea or Forgejo. If not given, all will be fetched.
 ] {
-  let github_user = $github_user | str-or { input $"(ansi red)GitHub username: (ansi reset)" }
-  let github_token = $github_token | str-or { input $"(ansi red)GitHub access token (ansi yellow)\((ansi blue)optional, only used for private repositories(ansi yellow))(ansi red): (ansi reset)" }
+  let github_user = $env | get -i GITHUB_USER | or-default { input $"(ansi red)GitHub username: (ansi reset)" }
+  let github_token = $env | get -i GITHUB_TOKEN | or-default { input $"(ansi red)GitHub access token (ansi yellow)\((ansi blue)optional, only used for private repositories(ansi yellow))(ansi red): (ansi reset)" }
 
-  let gitea_url = $gitea_url | str-or { input $"(ansi green)Gitea instance URL: (ansi reset)" } | str trim --right --char "/"
+  let gitea_url = $env | get -i GITEA_URL | or-default { input $"(ansi green)Gitea instance URL \(with https://): (ansi reset)" } | str trim --right --char "/"
 
-  let gitea_user = $gitea_user | str-or { input $"(ansi green)Gitea username or organization to migrate to: (ansi reset)" }
-  let gitea_token = $gitea_token | str-or { input $"(ansi green)Gitea access token: (ansi reset)" }
+  let gitea_user = $env | get -i GITEA_USER | or-default { input $"(ansi green)Gitea username or organization to migrate to: (ansi reset)" }
+  let gitea_token = $env | get -i GITEA_TOKEN | or-default { input $"(ansi green)Gitea access token: (ansi reset)" }
 
   let gitea_uid = (
     http get $"($gitea_url)/api/v1/users/($gitea_user)"
@@ -36,7 +40,7 @@ def main [
     exit 1
   }
 
-  let strategy = $strategy | str-or { [ Mirrored Cloned ] | input list $"(ansi cyan)Should the repos be mirrored, or just cloned once? (ansi reset)" }
+  let strategy = $env | get -i STRATEGY | or-default { [ Mirrored Cloned ] | input list $"(ansi cyan)Should the repos be mirrored, or just cloned once? (ansi reset)" } | str downcase
 
   let repo_urls = if ($repo_urls | length) != 0 {
     $repo_urls
@@ -56,7 +60,7 @@ def main [
   $repo_urls | each {|url|
     let repo_name = $url | split row "/" | last
 
-    let repo_is_private = if $github_token == "" {
+    let repo_is_private = if ($github_token | is-empty) {
       false
     } else {
       (
@@ -82,7 +86,7 @@ def main [
       ]
       {
         clone_addr: $url
-        mirror: ($strategy == "Mirrored")
+        mirror: ($strategy != "cloned")
         private: $repo_is_private
         uid: $gitea_uid
 
@@ -91,11 +95,10 @@ def main [
       }
     )
 
-    echo $" (ansi green)Success!"
-
-    echo ($response | to json)
-
-    # TODO: Handle ratelimits, 409's and access failures. Also print a
-    # nice message and options on what to do next on error.
+    if ($response | get -i message | is-not-empty) {
+      print $" (ansi yellow)Already mirrored!"
+    } else {
+      print $" (ansi green)Success!"
+    }
   }
 }
