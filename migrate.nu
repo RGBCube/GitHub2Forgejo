@@ -29,31 +29,33 @@ def main [] {
   let strategy     = $env | get -i STRATEGY     | or-default { [ Mirrored Cloned ] | input list $"(ansi cyan)Should the repos be mirrored, or just cloned once?(ansi reset)" } | str downcase
   let force_sync   = $env | get -i FORCE_SYNC   | or-default { [ "Yup, delete them" Nope ] | input list $"(ansi yellow)Should mirrored repos that don't have a GitHub source anymore be deleted?(ansi reset)" } | $in != "Nope"
 
-  def get-repos [page_nr: number] {
-    if $github_token != "" {
-      (http get $"https://api.github.com/user/repos?per_page=100&page=($page_nr)"
-      -H [ Authorization $"token ($github_token)" ])
-    } else {
-      http get $"https://api.github.com/users/($github_user)/repos?per_page=100?page=($page_nr)"
-      exit
+  let github_repos = do {
+    def get-repos-at [page_nr: number] {
+      if $github_token != "" {
+        (http get $"https://api.github.com/user/repos?per_page=100&page=($page_nr)"
+        -H [ Authorization $"token ($github_token)" ])
+      } else {
+        http get $"https://api.github.com/users/($github_user)/repos?per_page=100?page=($page_nr)"
+        exit
+      }
     }
-  }
 
-  mut github_repos = []
-  mut github_repo_page_nr = 1
+    mut repos = []
+    mut page_nr = 1
 
-  loop {
-    let next_repos = get-repos $github_repo_page_nr
-    $github_repos = ($github_repos | append $next_repos)
+    loop {
+      let next = get-repos-at $page_nr
+      $repos = ($repos | append $next)
 
-    if ($next_repos | length) >= 100 {
-      $github_repo_page_nr += 1
-    } else {
-      break
+      if ($next | length) >= 100 {
+        $page_nr += 1
+      } else {
+        break
+      }
     }
-  }
 
-  $github_repos = ($github_repos | filter { get owner.login | $in == $github_user })
+    $repos | filter { get owner.login | $in == $github_user }
+  }
 
   # Delete mirrored repos that do not exist on GitHub.
   if $force_sync {
@@ -67,10 +69,10 @@ def main [] {
 
     let gitea_not_on_github = ($gitea_mirrored_repos | filter { not ($in.name in $github_repo_names) })
 
-    $gitea_not_on_github | each {|repo|
-      print --no-newline $"(ansi red)Deleting ($gitea_url)/($repo.full_name) because the mirror source doesn't exist on GitHub anymore...(ansi reset)"
+    $gitea_not_on_github | each {|gitea_repo|
+      print --no-newline $"(ansi red)Deleting ($gitea_url)/($gitea_repo.full_name) because the mirror source doesn't exist on GitHub anymore...(ansi reset)"
 
-      (http delete $"($gitea_url)/api/v1/repos/($repo.full_name)"
+      (http delete $"($gitea_url)/api/v1/repos/($gitea_repo.full_name)"
         -H [ Authorization $"token ($gitea_token)" ])
 
       print $" (ansi green)Success!(ansi reset)"
@@ -78,14 +80,14 @@ def main [] {
   }
 
   # Mirror repos that do exist on GitHub to Gitea.
-  $github_repos | each {|repo|
-    let url = if not $repo.private {
-      $repo.html_url
+  $github_repos | each {|github_repo|
+    let github_repo_url = if not $github_repo.private {
+      $github_repo.html_url
     } else {
-      $"https://($github_token)@github.com/($github_user)/($repo.name)"
+      $"https://($github_token)@github.com/($github_user)/($github_repo.name)"
     }
 
-    print --no-newline $"(ansi blue)($strategy | str capitalize | str replace "ed" "ing") ([ public private ] | get ($repo.private | into int)) repository ($url) to ($gitea_url)/($gitea_user)/($repo.name)...(ansi reset)"
+    print --no-newline $"(ansi blue)($strategy | str capitalize | str replace "ed" "ing") ([ public private ] | get ($github_repo.private | into int)) repository ($github_repo_url) to ($gitea_url)/($gitea_user)/($github_repo.name)...(ansi reset)"
 
     let response = (
       http post $"($gitea_url)/api/v1/repos/migrate"
@@ -93,16 +95,17 @@ def main [] {
       -t application/json
       -H [ Authorization $"token ($gitea_token)" ]
       {
-        clone_addr: $url
+        clone_addr: $github_repo_url
         mirror: ($strategy != "cloned")
-        private: $repo.private
+        private: $github_repo.private
 
         repo_owner: $gitea_user
-        repo_name: $repo.name
+        repo_name: $github_repo.name
       }
     )
 
     let error_message = ($response | get -i message)
+
     if ($error_message != null and $error_message =~ "already exists") {
       print $" (ansi yellow)Already mirrored!(ansi reset)"
     } else if ($error_message != null) {
