@@ -80,7 +80,7 @@ def main [] {
     let forgejo_not_on_github = ($forgejo_mirrored_repos | filter { not ($in.name in $github_repo_names) })
 
     $forgejo_not_on_github | each {|forgejo_repo|
-      print --no-newline $"(ansi red)Deleting ($forgejo_url)/($forgejo_repo.full_name) because the mirror source doesn't exist on GitHub anymore...(ansi reset)"
+      print --no-newline $"(ansi red)Deleting (ansi yellow)($forgejo_url)/($forgejo_repo.full_name)(ansi red) because the mirror source doesn't exist on GitHub anymore...(ansi reset)"
 
       (http delete $"($forgejo_url)/api/v1/repos/($forgejo_repo.full_name)"
         -H [ Authorization $"token ($forgejo_token)" ])
