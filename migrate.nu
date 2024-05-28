@@ -33,7 +33,7 @@ def main [
   let gitea_uid = (
     http get $"($gitea_url)/api/v1/users/($gitea_user)"
     -H [ Authorization $"token ($gitea_token)" ]
-  ) | get --ignore-errors id
+  ) | get -i id
 
   if $gitea_uid == null {
     echo "Invalid Gitea username or password"
