@@ -3,14 +3,14 @@
 Plain simple, just install [Nushell](https://nushell.sh) and run the script:
 
 ```nu
-./migrate.nu --help
+./github2forgejo --help
 ```
 
 You can either specify all the environment variables
 for a uninteractive run, or run the script like so:
 
 ```nu
-./migrate.nu
+./github2forgejo
 ```
 
 And get a nice interactive experience.

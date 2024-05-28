@@ -1,6 +1,6 @@
 *
 
 !.gitignore
+!github2forgejo
 
 !*.md
-!*.nu
