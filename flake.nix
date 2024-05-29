@@ -31,7 +31,7 @@
         cfg = config.services.github2forgejo;
       in {
         options.services.github2forgejo = {
-          enable  = lib.mkEnableOption (lib.mdDoc "the github2gitea timer");
+          enable  = lib.mkEnableOption (lib.mdDoc "the github2forgejo timer");
           package = lib.mkPackageOption pkgs "github2forgejo" {};
 
           environmentFile = lib.mkOption {
