@@ -88,7 +88,7 @@
         };
 
         config = lib.mkIf cfg.enable {
-          systemd.services.github2forgeo = {
+          systemd.services.github2forgejo = {
             wants            = [ "network-online.target" ];
             after            = [ "network-online.target" ];
             restartIfChanged = false;
