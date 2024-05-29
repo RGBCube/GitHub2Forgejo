@@ -13,9 +13,17 @@
     eachSystem = lib.genAttrs (import systems);
   in {
     packages = eachSystem (system: let pkgs = import nixpkgs { inherit system; }; in rec {
-      default        = github2forgejo;
-      github2forgejo = pkgs.callPackage ./package.nix {};
+      inherit (self.overlays.github2forgejo pkgs pkgs) github2forgejo;
+
+      default = github2forgejo;
     });
+
+    overlays = rec {
+      default        = github2forgejo;
+      github2forgejo = (final: super: {
+        github2forgejo = super.callPackage ./package.nix {};
+      });
+    };
 
     nixosModules = rec {
       default        = github2forgejo;
@@ -24,7 +32,7 @@
       in {
         options.services.github2forgejo = {
           enable  = lib.mkEnableOption (lib.mdDoc "the github2gitea timer");
-          package = lib.mkPackageOption pkgs "github2forgejo";
+          package = lib.mkPackageOption pkgs "github2forgejo" {};
 
           environmentFile = lib.mkOption {
             type    = lib.types.path;
@@ -80,10 +88,6 @@
         };
 
         config = lib.mkIf cfg.enable {
-          nixpkgs.overlays = [(final: super: {
-            github2forgejo = super.callPackage ./package.nix {};
-          })];
-
           systemd.services.github2forgeo = {
             wants            = [ "network-online.target" ];
             after            = [ "network-online.target" ];
