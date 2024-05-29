@@ -3,5 +3,6 @@
 !.gitignore
 !github2forgejo
 
+!*.lock
 !*.md
 !*.nix
