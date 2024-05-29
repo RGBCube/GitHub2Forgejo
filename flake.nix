@@ -95,7 +95,7 @@
 
             serviceConfig = {
               Type      = "oneshot";
-              ExecStart = toString cfg.package;
+              ExecStart = lib.getExe cfg.package;
 
               User        = "github2forgejo";
               DynamicUser = true;
