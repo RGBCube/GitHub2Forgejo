@@ -6,6 +6,41 @@ Plain simple, just install [Nushell](https://nushell.sh) and run the script:
 ./github2forgejo --help
 ```
 
+<details>
+<summary>Help Output</summary>
+
+```
+Migrates a GitHub users repositories to a Forgejo instance.
+
+Accepted environment variables:
+
+  GITHUB_USER: The user to fetch the repositories from.
+  GITHUB_TOKEN: An access token for fetching private repositories. Optional.
+
+  FORGEJO_URL: The URL to the Forgejo instance. Must include the protocol (https://).
+  FORGEJO_USER: The user to migrate the repositories to.
+  FORGEJO_TOKEN: An access token for the specified user.
+
+  STRATEGY:
+    The strategy. Valid options are "mirrored" or "cloned" (case insensitive).
+    "mirrored" will mirror the repository and tell the Forgejo instance to
+    periodically update it, "cloned" will only clone once. "cloned" is
+    useful if you are never going to use GitHub again.
+
+  FORCE_SYNC:
+    Whether to delete a mirrored repo from the Forgejo instance if the
+    source on GitHub doesn't exist anymore. Must be either "true" or "false".
+
+To leave an environment variable unspecified, set it to an empty string.
+
+Usage:
+  > github2forgejo
+
+Flags:
+  -h, --help - Display the help message for this command
+```
+</details>
+
 You can either specify all the environment variables
 for a uninteractive run, or run the script like so:
 
