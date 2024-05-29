@@ -4,3 +4,4 @@
 !github2forgejo
 
 !*.md
+!*.nix
