@@ -38,6 +38,7 @@ stdenvNoCC.mkDerivation {
     description = "GitHub to Forgejo migration script";
     homepage    = "https://git.rgbcu.be/RGBCube/GitHub2Forgejo";
     license     = licenses.gpl3Only;
+    mainProgram = "github2forgejo";
     maintainers = with maintainers; [ RGBCube ];
   };
 }
