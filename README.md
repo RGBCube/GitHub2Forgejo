@@ -14,7 +14,7 @@ Migrates a GitHub users repositories to a Forgejo instance.
 
 Accepted environment variables:
 
-  GITHUB_USER: The user to fetch the repositories from.
+  GITHUB_USER: The user to fetch the repositories from. Case sensitive.
   GITHUB_TOKEN: An access token for fetching private repositories. Optional.
 
   FORGEJO_URL: The URL to the Forgejo instance. Must include the protocol (https://).
@@ -37,12 +37,13 @@ Usage:
   > github2forgejo
 
 Flags:
-  -h, --help - Display the help message for this command
+  -h, --help: Display the help message for this command
 ```
+
 </details>
 
-You can either specify all the environment variables
-for a uninteractive run, or run the script like so:
+You can either specify all the environment variables for a uninteractive run, or
+run the script like so:
 
 ```nu
 ./github2forgejo
@@ -119,13 +120,12 @@ The script is also available as a package, you just need to use the
 
 ### What is the difference between mirroring and cloning?
 
-- **Mirroring:** Will get updated every now and then,
-  keeping the repository in sync with the remote.
+- **Mirroring:** Will get updated every now and then, keeping the repository in
+  sync with the remote.
 
-- **Cloning:** Will only clone the remote, and will
-  not update or link to it anywhere in the repository.
-  This is good for when you are migrating off GitHub permanently
-  and will never come back.
+- **Cloning:** Will only clone the remote, and will not update or link to it
+  anywhere in the repository. This is good for when you are migrating off GitHub
+  permanently and will never come back.
 
 ### Can I migrate specific repositories?
 

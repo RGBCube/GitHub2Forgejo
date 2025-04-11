@@ -12,7 +12,7 @@ def or-default [default: closure] {
 #
 # Accepted environment variables:
 #
-#   GITHUB_USER: The user to fetch the repositories from.
+#   GITHUB_USER: The user to fetch the repositories from. Case sensitive.
 #   GITHUB_TOKEN: An access token for fetching private repositories. Optional.
 #
 #   FORGEJO_URL: The URL to the Forgejo instance. Must include the protocol (https://).
