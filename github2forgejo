@@ -31,13 +31,13 @@ def or-default [default: closure] {
 #
 # To leave an environment variable unspecified, set it to an empty string.
 def main [] {
-  let github_user    = $env | get -i GITHUB_USER   | or-default { input $"(ansi red)GitHub username: (ansi reset)" }
-  let github_token   = $env | get -i GITHUB_TOKEN  | or-default { input $"(ansi red)GitHub access token (ansi yellow)\((ansi blue)optional, only used for private repositories(ansi yellow))(ansi red): (ansi reset)" }
-  let forgejo_url    = $env | get -i FORGEJO_URL   | or-default { input $"(ansi green)Forgejo instance URL \(with https://): (ansi reset)" } | str trim --right --char "/"
-  let forgejo_user   = $env | get -i FORGEJO_USER  | or-default { input $"(ansi green)Forgejo username or organization to migrate to: (ansi reset)" }
-  let forgejo_token  = $env | get -i FORGEJO_TOKEN | or-default { input $"(ansi green)Forgejo access token: (ansi reset)" }
-  let strategy       = $env | get -i STRATEGY      | or-default { [ Mirrored Cloned ] | input list $"(ansi cyan)Should the repos be mirrored, or just cloned once?(ansi reset)" } | str downcase
-  let force_sync     = $env | get -i FORCE_SYNC    | or-default { [ "Yup, delete them" Nope ] | input list $"(ansi yellow)Should mirrored repos that don't have a GitHub source anymore be deleted?(ansi reset)" } | $in != "Nope"
+  let github_user    = $env | get -i GITHUB_USER                    | or-default { input $"(ansi red)GitHub username: (ansi reset)" }
+  let github_token   = $env | get -i GITHUB_TOKEN                   | or-default { input $"(ansi red)GitHub access token (ansi yellow)\((ansi blue)optional, only used for private repositories(ansi yellow))(ansi red): (ansi reset)" }
+  let forgejo_url    = $env | get -i FORGEJO_URL                    | or-default { input $"(ansi green)Forgejo instance URL \(with https://): (ansi reset)" } | str trim --right --char "/"
+  let forgejo_user   = $env | get -i FORGEJO_USER                   | or-default { input $"(ansi green)Forgejo username or organization to migrate to: (ansi reset)" }
+  let forgejo_token  = $env | get -i FORGEJO_TOKEN                  | or-default { input $"(ansi green)Forgejo access token: (ansi reset)" }
+  let strategy       = $env | get -i STRATEGY                       | or-default { [ Mirrored Cloned ] | input list $"(ansi cyan)Should the repos be mirrored, or just cloned once?(ansi reset)" } | str downcase
+  let force_sync     = $env | get -i FORCE_SYNC | try { into bool } | or-default { [ "Yup, delete them" Nope ] | input list $"(ansi yellow)Should mirrored repos that don't have a GitHub source anymore be deleted?(ansi reset)" | $in != "Nope" }
 
   let github_repos = do {
     def get-repos-at [page_nr: number] {
