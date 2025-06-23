@@ -9,7 +9,10 @@ stdenvNoCC.mkDerivation {
   name    = "github2forgejo";
   version = "master";
 
-  src = ./.;
+  src = builtins.path {
+    path = ./.;
+    name = "source";
+  };
 
   dontBuild     = true;
   dontConfigure = true;
